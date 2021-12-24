@@ -10,5 +10,5 @@ This bot will periodically (every 10 minutes) open the heroes menu and put every
 - Download this repository.
 - Open a CMD in the folder.
 - Run "pip install -r requirements.txt" to install the requirements.
-- Open your game, login and make sure the game window is visible while the bot runs.
+- Open your game, login and make sure a single game window is visible and with 100% zoom while the bot runs.
 - Run the bot with "python BombBot.py".
