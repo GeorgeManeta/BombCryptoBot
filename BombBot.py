@@ -64,6 +64,9 @@ def DebugCircle(position):
 def WorkAllRoutine():
     FindImageAndClick("Return")
     position = FindImageAndClick("Heroes")
+    if(position is None):
+        print("couldn't find 'heroes' button")
+        return
     time.sleep(.5)
 
     # Scroll to the end of the heroes list
@@ -83,6 +86,7 @@ def WorkAllRoutine():
     FindImageAndClick("TreasureHunt")
 
 def Main():
+    time.sleep(5)
     lastWorkUpdate = 0
     secondsNeededToWorkRoutine = 10*60
     while(True):
