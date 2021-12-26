@@ -3,8 +3,9 @@ import numpy as np
 import mss
 import pyautogui
 import time
+import datetime
 
-movementDuration = .2
+movementDuration = .1
 waitNextFrameDelay = .1
 imageDict = {
     "Return" : {"path":"./Images/BackArrow.png", "threshold": .95},
@@ -44,22 +45,32 @@ def MoveMouseTo(position):
         return;
     pyautogui.moveTo(position[0], position[1], movementDuration)
 
-def FindImageAndClick(imageName):
-    frame = ScreenShot()
-    threshold = imageDict[imageName]["threshold"]
-    position = Find(GetImage(imageName), frame, threshold)
-    if(position is not None):
-        MoveMouseTo(position)
-        pyautogui.click()
-        time.sleep(waitNextFrameDelay)
-    return position
+def FindImageAndClick(imageName, retries = 2):
+    for i in range(0, retries+1):
+        frame = ScreenShot()
+        threshold = imageDict[imageName]["threshold"]
+        position = Find(GetImage(imageName), frame, threshold)
+        if(position is not None):
+            MoveMouseTo(position)
+            pyautogui.click()
+            time.sleep(waitNextFrameDelay)
+            return position
+        else:
+            time.sleep(.5)
+    return None
 
-def DebugCircle(position):
-    frame = ScreenShot()
-    image = np.ascontiguousarray(frame, dtype=np.uint8)
-    cv2.circle(image, position , 10, (0, 0, 255))
-    cv2.imshow('title', image)
-    cv2.waitKey(0)
+#def DebugCircle(position):
+#    frame = ScreenShot()
+#    image = np.ascontiguousarray(frame, dtype=np.uint8)
+#    cv2.circle(image, position , 10, (0, 0, 255))
+#    cv2.imshow('title', image)
+#    cv2.waitKey(0)
+
+def LogWithTime(time, message):
+    date = datetime.datetime.fromtimestamp(time)
+    format = "[{}] {}"
+    print(format.format(date, message))
+    
 
 def WorkAllRoutine():
     FindImageAndClick("Return")
@@ -67,35 +78,48 @@ def WorkAllRoutine():
     if(position is None):
         print("couldn't find 'heroes' button")
         return
-    time.sleep(.5)
+
+    time.sleep(1)
 
     # Scroll to the end of the heroes list
     positionToScroll = (position[0] - 700, position[1] - 300)
     for i in range(0,3):
         MoveMouseTo(positionToScroll)
-        pyautogui.drag(0, -200, movementDuration)
+        pyautogui.drag(0, -200, .5)
 
     time.sleep(waitNextFrameDelay)
-    for i in range(0,15):
-        position = FindImageAndClick("Work")
+    # Click all work buttons
+    for i in range(0,20):
+        position = FindImageAndClick("Work", retries = 0)
         if(position is None):
             break
 
     FindImageAndClick("X")
-    time.sleep(.5)
+    FindImageAndClick("TreasureHunt")
+
+def ReenterTreasureHunt():
+    FindImageAndClick("Return")
     FindImageAndClick("TreasureHunt")
 
 def Main():
+    print("initiating bot in 5 seconds...")
     time.sleep(5)
     lastWorkUpdate = 0
-    secondsNeededToWorkRoutine = 10*60
+    lastReenter = 0
+    secondsNeededToWorkRoutine = 20*60
+    secondsNeededToReenter = 60
     while(True):
-        FindImageAndClick("NewMap")
+        position = FindImageAndClick("NewMap")
+        if(position is not None):
+            LogWithTime(now, "Entering new map...")
         time.sleep(1);
         now = time.time()
         if(now - lastWorkUpdate > secondsNeededToWorkRoutine):
+            LogWithTime(now, "Executing work routine...")
             lastWorkUpdate = now
-            print("executing work routine")
+            lastReenter = now
             WorkAllRoutine()
-
+        elif(now - lastReenter > secondsNeededToReenter):
+            lastReenter = now
+            ReenterTreasureHunt()
 Main()
