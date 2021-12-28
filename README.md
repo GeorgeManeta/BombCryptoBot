@@ -3,8 +3,8 @@
 This is a bot for the game Bomb Crypto. Verify if using this type of bot is allowed before using it, otherwise you might get banned.
 
 This bot will:
-- Periodically open the heroes menu and put every hero to work (default = every 20 minutes).
-- Periodically exit and reenter the treasure hunt mode, to avoid AFK and help the AI that gets stuck sometimes.
+- Periodically (every 20 minutes) open the heroes menu and put every hero to work.
+- Periodically (every minute) exit and reenter the treasure hunt mode, to avoid AFK and help the AI that gets stuck sometimes.
 - It will also check if the "Map Completed" screen shows up and click the "New Map" button.
 
 ## Running from source code
