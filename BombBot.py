@@ -82,7 +82,7 @@ def WorkAllRoutine():
     # Scroll to the end of the heroes list
     positionToScroll = (position[0] - 700, position[1] - 300)
     for i in range(0,3):
-        MoveMouseTo(positionToScroll)
+        pyautogui.moveTo(positionToScroll[0], positionToScroll[1], movementDuration)
         pyautogui.drag(0, -200, .5)
 
     time.sleep(.5)
