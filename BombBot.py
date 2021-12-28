@@ -5,11 +5,13 @@ import pyautogui
 import time
 import datetime
 
+reenterDelay = 60
+goToWorkDelay = 60 * 20
 movementDuration = .1
 waitNextFrameDelay = .1
 imageDict = {
     "Return" : {"path":"./Images/BackArrow.png", "threshold": .95},
-    "Heroes" : {"path":"./Images/Heroes.png", "threshold": .95},
+    "Heroes" : {"path":"./Images/Heroes.png", "threshold": .9},
     "Work" : {"path":"./Images/Work.png", "threshold": .94},
     "Rest" : {"path":"./Images/Rest.png", "threshold": .93},
     "X" : {"path":"./Images/X.png", "threshold": .9},
@@ -17,10 +19,16 @@ imageDict = {
     "NewMap" : {"path":"./Images/NewMap.png", "threshold": .9},
     }
 
-def GetImage(imageName):
-    path = imageDict[imageName]["path"]
-    image = cv2.imread(path)
-    return image
+def LogWithTime(time, message):
+    date = datetime.datetime.fromtimestamp(time)
+    format = "[{}] {}"
+    print(format.format(date, message))
+def DebugCircle(position):
+    frame = ScreenShot()
+    image = np.ascontiguousarray(frame, dtype=np.uint8)
+    cv2.circle(image, position , 10, (0, 0, 255))
+    cv2.imshow('title', image)
+    cv2.waitKey(0)
 
 def ScreenShot():
      with mss.mss() as sct:
@@ -28,7 +36,12 @@ def ScreenShot():
         sct_img = np.array(sct.grab(monitor))
         return sct_img[:,:,:3]
 
-def Find(template, frame, threshold):
+def GetImage(imageName):
+    path = imageDict[imageName]["path"]
+    image = cv2.imread(path)
+    return image
+
+def MatchTemplate(template, frame, threshold):
     result = cv2.matchTemplate(frame,template,cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
@@ -38,48 +51,33 @@ def Find(template, frame, threshold):
     templateWidht = template.shape[1]
     templateHeight = template.shape[0]
     return max_loc[0] + int(templateWidht/2) , max_loc[1] + int(templateHeight/2)
-    
-def MoveMouseTo(position):
-    if(position == None):
-        print("trying to move to None position")
-        return;
-    pyautogui.moveTo(position[0], position[1], movementDuration)
 
-def FindImageAndClick(imageName, retries = 2):
-    for i in range(0, retries+1):
+def FindImage(imageName, timeout = 0, logErrorWhenNotFound = True):
+    start = time.time()
+    while(time.time() <= start + timeout):
+        time.sleep(waitNextFrameDelay)
         frame = ScreenShot()
         threshold = imageDict[imageName]["threshold"]
-        position = Find(GetImage(imageName), frame, threshold)
+        position = MatchTemplate(GetImage(imageName), frame, threshold)
         if(position is not None):
-            MoveMouseTo(position)
-            pyautogui.click()
-            time.sleep(waitNextFrameDelay)
             return position
-        else:
-            time.sleep(.5)
+    if (logErrorWhenNotFound):
+        print("image '" + imageName + "' not found")
     return None
 
-#def DebugCircle(position):
-#    frame = ScreenShot()
-#    image = np.ascontiguousarray(frame, dtype=np.uint8)
-#    cv2.circle(image, position , 10, (0, 0, 255))
-#    cv2.imshow('title', image)
-#    cv2.waitKey(0)
-
-def LogWithTime(time, message):
-    date = datetime.datetime.fromtimestamp(time)
-    format = "[{}] {}"
-    print(format.format(date, message))
-    
+def ClickAt(position):
+    if(position is not None):
+        pyautogui.moveTo(position[0], position[1], movementDuration)
+        pyautogui.click()
 
 def WorkAllRoutine():
-    FindImageAndClick("Return")
-    position = FindImageAndClick("Heroes")
+    ClickAt(FindImage("Return"))
+    position = FindImage("Heroes")
     if(position is None):
-        print("couldn't find 'heroes' button")
         return
 
-    time.sleep(1)
+    ClickAt(position)
+    FindImage("X", 5) # wait for the heroes tab to load, timeout in 5 seconds
 
     # Scroll to the end of the heroes list
     positionToScroll = (position[0] - 700, position[1] - 300)
@@ -87,39 +85,44 @@ def WorkAllRoutine():
         MoveMouseTo(positionToScroll)
         pyautogui.drag(0, -200, .5)
 
-    time.sleep(waitNextFrameDelay)
+    time.sleep(.5)
     # Click all work buttons
     for i in range(0,20):
-        position = FindImageAndClick("Work", retries = 0)
+        position = FindImage("Work", timeout = 2, logErrorWhenNotFound = False)
         if(position is None):
             break
+        ClickAt(position)
 
-    FindImageAndClick("X")
-    FindImageAndClick("TreasureHunt")
+    ClickAt(FindImage("X"))
+    ClickAt(FindImage("TreasureHunt", timeout = 2))
 
 def ReenterTreasureHunt():
-    FindImageAndClick("Return")
-    FindImageAndClick("TreasureHunt")
+    ClickAt(FindImage("Return"))
+    ClickAt(FindImage("TreasureHunt"))
 
 def Main():
     print("initiating bot in 5 seconds...")
     time.sleep(5)
     lastWorkUpdate = 0
     lastReenter = 0
-    secondsNeededToWorkRoutine = 20*60
-    secondsNeededToReenter = 60
     while(True):
-        position = FindImageAndClick("NewMap")
+        now = time.time()
+
+        # check for new map
+        position = FindImage("NewMap", logErrorWhenNotFound = False)
         if(position is not None):
             LogWithTime(now, "Entering new map...")
-        time.sleep(1);
-        now = time.time()
-        if(now - lastWorkUpdate > secondsNeededToWorkRoutine):
+            ClickAt(position)
+
+        if(now - lastWorkUpdate > goToWorkDelay):
             LogWithTime(now, "Executing work routine...")
             lastWorkUpdate = now
             lastReenter = now
             WorkAllRoutine()
-        elif(now - lastReenter > secondsNeededToReenter):
+        elif(now - lastReenter > reenterDelay):
             lastReenter = now
             ReenterTreasureHunt()
+
+        time.sleep(1)
+
 Main()
