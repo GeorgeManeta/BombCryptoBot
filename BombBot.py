@@ -52,7 +52,7 @@ def MatchTemplate(template, frame, threshold):
     templateHeight = template.shape[0]
     return max_loc[0] + int(templateWidht/2) , max_loc[1] + int(templateHeight/2)
 
-def FindImage(imageName, timeout = 0, logErrorWhenNotFound = True):
+def FindImage(imageName, timeout = 3, logErrorWhenNotFound = True):
     start = time.time()
     while(time.time() <= start + timeout):
         time.sleep(waitNextFrameDelay)
@@ -77,7 +77,8 @@ def WorkAllRoutine():
         return
 
     ClickAt(position)
-    FindImage("X", 5) # wait for the heroes tab to load, timeout in 5 seconds
+    FindImage("X", timeout = 5) # wait for the heroes tab to load, timeout in 5 seconds
+    time.sleep(1)
 
     # Scroll to the end of the heroes list
     positionToScroll = (position[0] - 700, position[1] - 300)
@@ -88,13 +89,13 @@ def WorkAllRoutine():
     time.sleep(.5)
     # Click all work buttons
     for i in range(0,20):
-        position = FindImage("Work", timeout = 2, logErrorWhenNotFound = False)
+        position = FindImage("Work", timeout = .5, logErrorWhenNotFound = False)
         if(position is None):
             break
         ClickAt(position)
 
     ClickAt(FindImage("X"))
-    ClickAt(FindImage("TreasureHunt", timeout = 2))
+    ClickAt(FindImage("TreasureHunt"))
 
 def ReenterTreasureHunt():
     ClickAt(FindImage("Return"))
