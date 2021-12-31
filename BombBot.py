@@ -10,6 +10,8 @@ goToWorkDelay = 60 * 20
 movementDuration = .1
 waitNextFrameDelay = .1
 imageDict = {
+    "ConnectWallet" : {"path":"./Images/ConnectWallet.png", "threshold": .95},
+    "Sign" : {"path":"./Images/sign.png", "threshold": .95},
     "Return" : {"path":"./Images/BackArrow.png", "threshold": .95},
     "Heroes" : {"path":"./Images/Heroes.png", "threshold": .9},
     "Work" : {"path":"./Images/Work.png", "threshold": .94},
@@ -108,6 +110,13 @@ def Main():
     lastReenter = 0
     while(True):
         now = time.time()
+
+        position = FindImage("ConnectWallet", logErrorWhenNotFound = False)
+        if(position is not None):
+            LogWithTime(now, "Connecting Wallet...")
+            ClickAt(position)
+            ClickAt(FindImage("Sign", timeout = 10))
+            FindImage("TreasureHunt", timeout = 30)
 
         # check for new map
         position = FindImage("NewMap", logErrorWhenNotFound = False)
