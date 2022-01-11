@@ -14,11 +14,13 @@ imageDict = {
     "Sign" : {"path":"./Images/sign.png", "threshold": .95},
     "Return" : {"path":"./Images/BackArrow.png", "threshold": .95},
     "Heroes" : {"path":"./Images/Heroes.png", "threshold": .9},
+    "WorkAll" : {"path":"./Images/WorkAll.png", "threshold": .94},
     "Work" : {"path":"./Images/Work.png", "threshold": .94},
     "Rest" : {"path":"./Images/Rest.png", "threshold": .93},
     "X" : {"path":"./Images/X.png", "threshold": .9},
     "TreasureHunt" : {"path":"./Images/TreasureHunt.png", "threshold": .9},
     "NewMap" : {"path":"./Images/NewMap.png", "threshold": .9},
+    "OK" : {"path":"./Images/OK.png", "threshold": .94},
     }
 
 def LogWithTime(time, message):
@@ -80,22 +82,8 @@ def WorkAllRoutine():
 
     ClickAt(position)
     FindImage("X", timeout = 5) # wait for the heroes tab to load, timeout in 5 seconds
-    time.sleep(1)
-
-    # Scroll to the end of the heroes list
-    positionToScroll = (position[0] - 700, position[1] - 300)
-    for i in range(0,3):
-        pyautogui.moveTo(positionToScroll[0], positionToScroll[1], movementDuration)
-        pyautogui.drag(0, -200, .5)
-
-    time.sleep(.5)
-    # Click all work buttons
-    for i in range(0,20):
-        position = FindImage("Work", timeout = .5, logErrorWhenNotFound = False)
-        if(position is None):
-            break
-        ClickAt(position)
-
+    
+    ClickAt(FindImage("WorkAll"))
     ClickAt(FindImage("X"))
     ClickAt(FindImage("TreasureHunt"))
 
@@ -110,6 +98,10 @@ def Main():
     lastReenter = 0
     while(True):
         now = time.time()
+
+        position = FindImage("OK", logErrorWhenNotFound = False)
+        if(position is not None):
+            ClickAt(position)
 
         position = FindImage("ConnectWallet", logErrorWhenNotFound = False)
         if(position is not None):
