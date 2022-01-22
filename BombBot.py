@@ -17,7 +17,7 @@ imageDict = {
     "WorkAll" : {"path":"./Images/WorkAll.png", "threshold": .94},
     "Work" : {"path":"./Images/Work.png", "threshold": .94},
     "Rest" : {"path":"./Images/Rest.png", "threshold": .93},
-    "X" : {"path":"./Images/X.png", "threshold": .9},
+    "X" : {"path":"./Images/X.png", "threshold": .95},
     "TreasureHunt" : {"path":"./Images/TreasureHunt.png", "threshold": .9},
     "NewMap" : {"path":"./Images/NewMap.png", "threshold": .9},
     "OK" : {"path":"./Images/OK.png", "threshold": .94},
@@ -76,12 +76,8 @@ def ClickAt(position):
 
 def WorkAllRoutine():
     ClickAt(FindImage("Return"))
-    position = FindImage("Heroes")
-    if(position is None):
-        return
-
-    ClickAt(position)
-    FindImage("X", timeout = 5) # wait for the heroes tab to load, timeout in 5 seconds
+    ClickAt(FindImage("Heroes"))
+    FindImage("X", timeout = 10) # wait for the heroes tab to load, timeout in 5 seconds
     
     ClickAt(FindImage("WorkAll"))
     ClickAt(FindImage("X"))
